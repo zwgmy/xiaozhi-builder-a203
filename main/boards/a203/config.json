@@ -1,6 +1,5 @@
 {
   "type": "a203",
-  "manufacturer": "Ai-Thinker",
   "target": "esp32s3",
   "builds": [
     {
