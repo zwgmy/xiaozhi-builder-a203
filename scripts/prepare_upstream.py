@@ -57,8 +57,8 @@ def main() -> None:
         if chain_end < 0:
             raise SystemExit("Could not locate end of board selection if/elseif chain")
         entry = (
-            'elseif(CONFIG_BOARD_TYPE_A203)\\n'
-            '    set(BOARD_DIR "a203")\\n'
+            'elseif(CONFIG_BOARD_TYPE_A203)\n'
+            '    set(BOARD_DIR "a203")\n'
         )
         cmake = cmake[:chain_end] + entry + cmake[chain_end:]
         cmake_path.write_text(cmake, encoding="utf-8")
