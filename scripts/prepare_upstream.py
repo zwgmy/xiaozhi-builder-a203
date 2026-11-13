@@ -52,11 +52,15 @@ def main() -> None:
         marker = 'if(NOT BOARD_DIR AND NOT CMAKE_BUILD_EARLY_EXPANSION)'
         if marker not in cmake:
             raise SystemExit("Could not locate board selection terminator in main/CMakeLists.txt")
+        marker_pos = cmake.find(marker)
+        chain_end = cmake.rfind("endif()", 0, marker_pos)
+        if chain_end < 0:
+            raise SystemExit("Could not locate end of board selection if/elseif chain")
         entry = (
-            'elseif(CONFIG_BOARD_TYPE_A203)\n'
-            '    set(BOARD_DIR "a203")\n'
+            'elseif(CONFIG_BOARD_TYPE_A203)\\n'
+            '    set(BOARD_DIR "a203")\\n'
         )
-        cmake = cmake.replace(marker, entry + marker, 1)
+        cmake = cmake[:chain_end] + entry + cmake[chain_end:]
         cmake_path.write_text(cmake, encoding="utf-8")
 
     print(f"A203 board copied to {board_target}")
