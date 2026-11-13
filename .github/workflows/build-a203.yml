@@ -1,0 +1,90 @@
+name: Build A203 XiaoZhi firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - a203-dev
+    paths:
+      - "main/boards/a203/**"
+      - "scripts/prepare_upstream.py"
+      - ".github/workflows/build-a203.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build A203 (ESP-IDF 6.1)
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:release-v6.1
+    steps:
+      - name: Checkout A203 configuration
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned XiaoZhi upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init "$RUNNER_TEMP/xiaozhi-esp32"
+          cd "$RUNNER_TEMP/xiaozhi-esp32"
+          git remote add origin https://github.com/78/xiaozhi-esp32.git
+          git fetch --depth 1 origin 67ca62d4bb7d91e514d7ccd5e6977745002f41f4
+          git checkout --detach FETCH_HEAD
+          echo "UPSTREAM_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Register A203 board
+        shell: bash
+        run: |
+          python "$GITHUB_WORKSPACE/scripts/prepare_upstream.py" "$RUNNER_TEMP/xiaozhi-esp32"
+
+      - name: Build firmware
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$IDF_PATH/export.sh"
+          cd "$RUNNER_TEMP/xiaozhi-esp32"
+          python scripts/build.py a203 --name a203 --language zh-CN
+
+      - name: Collect firmware and flash information
+        shell: bash
+        run: |
+          set -euo pipefail
+          UPSTREAM="$RUNNER_TEMP/xiaozhi-esp32"
+          OUT="$GITHUB_WORKSPACE/a203-artifacts"
+          mkdir -p "$OUT"
+          cp "$UPSTREAM/build/merged-binary.bin" "$OUT/"
+          cp "$UPSTREAM/build/flasher_args.json" "$OUT/" 2>/dev/null || true
+          cp "$UPSTREAM/build/flash_args" "$OUT/" 2>/dev/null || true
+          cp "$UPSTREAM/build/bootloader/bootloader.bin" "$OUT/" 2>/dev/null || true
+          cp "$UPSTREAM/build/partition_table/partition-table.bin" "$OUT/" 2>/dev/null || true
+          find "$UPSTREAM/build" -maxdepth 1 -name "*.bin" -exec cp {} "$OUT/" \;
+          cp "$UPSTREAM/sdkconfig" "$OUT/"
+          cp "$UPSTREAM/partitions/v2/8m.csv" "$OUT/"
+          {
+            echo "XiaoZhi upstream commit: $UPSTREAM_COMMIT"
+            echo "ESP-IDF: release/v6.1"
+            echo "Board: Ai-Thinker ESP-S3-12K-KIT A203"
+            echo "Target: ESP32-S3"
+            echo "Flash: 8MB"
+            echo "PSRAM: 8MB"
+            echo "Language: zh-CN"
+            echo "Wake word: selected by scripts/build.py (Chinese default)"
+            echo
+            echo "Flash command metadata:"
+            if [ -f "$UPSTREAM/build/flasher_args.json" ]; then
+              cat "$UPSTREAM/build/flasher_args.json"
+            elif [ -f "$UPSTREAM/build/flash_args" ]; then
+              cat "$UPSTREAM/build/flash_args"
+            else
+              echo "No flash argument manifest was generated."
+            fi
+          } > "$OUT/BUILD-INFO.txt"
+
+      - name: Upload A203 firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: a203-xiaozhi-firmware
+          path: a203-artifacts/
+          if-no-files-found: error
