@@ -1,0 +1,25 @@
+{
+  "board": "a203",
+  "chip": "esp32s3",
+  "flash_size": "8MB",
+  "psram_size": "8MB",
+  "language": "zh_CN",
+  "audio": {
+    "input": {
+      "type": "pdm",
+      "clock_gpio": 2,
+      "data_gpio": 7,
+      "channel": "left",
+      "sample_rate": 16000
+    },
+    "output": {
+      "type": "i2s",
+      "codec": "MAX98357A",
+      "bclk_gpio": 12,
+      "lrclk_gpio": 13,
+      "data_gpio": 14,
+      "sample_rate": 24000,
+      "channels": 1
+    }
+  }
+}
