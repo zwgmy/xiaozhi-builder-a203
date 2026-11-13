@@ -1,0 +1,24 @@
+#ifndef _A203_BOARD_CONFIG_H_
+#define _A203_BOARD_CONFIG_H_
+
+#include <driver/gpio.h>
+
+// Ai-Thinker ESP-S3-12K-KIT A203
+// Flash: 8 MB; PSRAM: 8 MB
+
+#define AUDIO_INPUT_SAMPLE_RATE  16000
+#define AUDIO_OUTPUT_SAMPLE_RATE 24000
+
+// PDM microphone: LMD2718B261, LEFT channel
+#define AUDIO_PDM_MIC_GPIO_CLK GPIO_NUM_2
+#define AUDIO_PDM_MIC_GPIO_DIN GPIO_NUM_7
+
+// MAX98357A I2S amplifier
+#define AUDIO_I2S_SPK_GPIO_BCLK GPIO_NUM_12
+#define AUDIO_I2S_SPK_GPIO_LRCK GPIO_NUM_13
+#define AUDIO_I2S_SPK_GPIO_DOUT GPIO_NUM_14
+
+// Physical BOOT button (active low)
+#define BOOT_BUTTON_GPIO GPIO_NUM_0
+
+#endif // _A203_BOARD_CONFIG_H_
