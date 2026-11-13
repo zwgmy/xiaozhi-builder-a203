@@ -23,6 +23,13 @@ The microphone and speaker have been tested using ESPHome 2026.10.2. The MAX9835
 
 Important ESPHome finding: in this PDM configuration, the microphone clock is assigned through `i2s_lrclk_pin`, not `i2s_bclk_pin`. With `i2s_lrclk_pin: GPIO2` and `i2s_din_pin: GPIO7`, the microphone works. Changing only `i2s_bclk_pin` did not move the PDM clock.
 
+## PSRAM
+
+- Capacity: 8 MB (confirmed by ESPHome runtime detection).
+- Working ESPHome configuration: `mode: quad`, `speed: 80MHz`.
+- Runtime log confirmed `Available: YES` and `Size: 8192 KB`.
+- Use ESP-IDF `CONFIG_SPIRAM_MODE_QUAD=y` and `CONFIG_SPIRAM_SPEED_80M=y` for XiaoZhi. Octal mode failed to initialize on this board.
+
 ## Button
 
 - BOOT button: GPIO0
