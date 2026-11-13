@@ -6,7 +6,9 @@
     {
       "name": "a203",
       "sdkconfig_append": [
-        "CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y"
+        "CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y",
+        "CONFIG_PARTITION_TABLE_CUSTOM=y",
+        "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v2/8m.csv\""
       ]
     }
   ]
