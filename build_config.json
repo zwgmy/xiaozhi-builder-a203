@@ -4,6 +4,10 @@
   "flash_size": "8MB",
   "psram_size": "8MB",
   "language": "zh_CN",
+  "buttons": {
+    "boot_gpio": 0,
+    "boot_active_level": 0
+  },
   "audio": {
     "input": {
       "type": "pdm",
