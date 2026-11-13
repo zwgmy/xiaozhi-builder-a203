@@ -4,29 +4,39 @@
 
 Ai-Thinker NodeMCU-Series ESP-S3-12K-KIT, A203 version.
 
-- ESP32-S3
-- 8 MB flash (confirmed by user)
-- 8 MB PSRAM (board specification / prior board identification)
+- MCU: ESP32-S3
+- Flash: 8 MB (confirmed by user)
+- PSRAM: 8 MB (board specification / prior board identification)
 
-## Audio wiring
+## Verified audio wiring
 
-| Device | Pin | ESP32-S3 |
+| Device | Signal | ESP32-S3 GPIO |
 |---|---|---:|
 | LMD2718B261 PDM microphone | CLK | GPIO2 |
 | LMD2718B261 PDM microphone | DATA | GPIO7 |
 | LMD2718B261 PDM microphone | L/R select | GND (LEFT) |
 | MAX98357A | BCLK | GPIO12 |
-| MAX98357A | LRC | GPIO13 |
+| MAX98357A | LRC / WS | GPIO13 |
 | MAX98357A | DIN | GPIO14 |
 
-The microphone and speaker have been tested independently using ESPHome. The MAX98357A successfully plays audio. The PDM microphone produces audio-level changes when configured with `i2s_lrclk_pin: GPIO2` and `i2s_din_pin: GPIO7`.
+The microphone and speaker have been tested using ESPHome 2026.10.2. The MAX98357A successfully plays audio, and the PDM microphone produces audio-level changes.
 
-Important: ESPHome's PDM implementation uses the I2S WS/LRCLK pin configuration as the PDM clock output. Setting `i2s_bclk_pin` alone did not move the clock from GPIO0; setting `i2s_lrclk_pin` to GPIO2 fixed the test.
+Important ESPHome finding: in this PDM configuration, the microphone clock is assigned through `i2s_lrclk_pin`, not `i2s_bclk_pin`. With `i2s_lrclk_pin: GPIO2` and `i2s_din_pin: GPIO7`, the microphone works. Changing only `i2s_bclk_pin` did not move the PDM clock.
 
-## Porting cautions
+## Button
 
-1. XiaoZhi firmware must use the PDM RX driver, not a standard-I2S microphone input.
-2. The XiaoZhi source contains `NoAudioCodecSimplexPdm`; board code should use it with the verified mic clock/data and speaker BCLK/WS/DOUT pins.
-3. GPIO0 was used during initial ESPHome diagnosis but is not the final microphone clock pin. GPIO2 is the verified final pin.
-4. Validate cold boot and download mode before treating the pin map as production-ready.
-5. Confirm the final 8 MB partition layout and generated flash arguments before flashing.
+- BOOT button: GPIO0
+- Active level: low (button shorts GPIO0 to GND when pressed; confirm board schematic / continuity before final production use).
+
+GPIO0 is reserved for BOOT and must not be assigned to the microphone clock.
+
+## Firmware porting notes
+
+1. Use the XiaoZhi `NoAudioCodecSimplexPdm` codec for PDM RX plus standard I2S TX.
+2. Constructor pin order from the current upstream header:
+   `(input_rate, output_rate, speaker_bclk, speaker_ws, speaker_dout, mic_sck, mic_din)`.
+3. For A203, the intended call is:
+   `NoAudioCodecSimplexPdm(16000, 24000, GPIO_NUM_12, GPIO_NUM_13, GPIO_NUM_14, GPIO_NUM_2, GPIO_NUM_7)`.
+4. GPIO0 is reserved for the physical BOOT button.
+5. Validate cold boot, BOOT/download mode, audio capture, playback and simultaneous full-duplex application behavior before calling the port production-ready.
+6. Confirm the selected 8 MB partition table and generated flash arguments before flashing.
