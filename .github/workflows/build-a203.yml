@@ -86,8 +86,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd "$GITHUB_WORKSPACE/a203-artifacts"
-          zip -r "$GITHUB_WORKSPACE/a203-xiaozhi-firmware.zip" .
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+
+          source = Path("a203-artifacts")
+          archive = Path("a203-xiaozhi-firmware.zip")
+          with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:
+              for file in sorted(source.rglob("*")):
+                  if file.is_file():
+                      bundle.write(file, file.relative_to(source))
+          PY
 
       - name: Upload A203 firmware artifacts
         uses: actions/upload-artifact@v4
