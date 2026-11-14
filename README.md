@@ -15,7 +15,7 @@ This repository is being prepared for a custom XiaoZhi ESP32 firmware build for 
 | Signal | GPIO |
 |---|---:|
 | PDM microphone CLK | GPIO2 |
-| PDM microphone DATA | GPIO7 |
+| PDM microphone DATA | GPIO10 |
 | MAX98357A BCLK | GPIO12 |
 | MAX98357A LRCLK | GPIO13 |
 | MAX98357A DIN | GPIO14 |
