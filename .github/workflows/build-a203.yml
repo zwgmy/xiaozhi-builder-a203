@@ -11,7 +11,7 @@ on:
       - ".github/workflows/build-a203.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -68,7 +68,7 @@ jobs:
             echo "Board: Ai-Thinker ESP-S3-12K-KIT A203"
             echo "Target: ESP32-S3"
             echo "Flash: 8MB"
-            echo "PSRAM: 8MB"
+            echo "PSRAM: 8MB (Quad, 80MHz)"
             echo "Language: zh-CN"
             echo "Wake word: selected by scripts/build.py (Chinese default)"
             echo
@@ -82,9 +82,34 @@ jobs:
             fi
           } > "$OUT/BUILD-INFO.txt"
 
+      - name: Package complete firmware
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/a203-artifacts"
+          zip -r "$GITHUB_WORKSPACE/a203-xiaozhi-firmware.zip" .
+
       - name: Upload A203 firmware artifacts
         uses: actions/upload-artifact@v4
         with:
           name: a203-xiaozhi-firmware
-          path: a203-artifacts/
+          path: |
+            a203-artifacts/
+            a203-xiaozhi-firmware.zip
           if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: a203-build-${{ github.run_number }}
+          name: A203 XiaoZhi firmware build #${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          generate_release_notes: true
+          files: |
+            a203-artifacts/merged-binary.bin
+            a203-artifacts/BUILD-INFO.txt
+            a203-xiaozhi-firmware.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
